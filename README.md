@@ -62,7 +62,7 @@ passport-ocr-record-matching-demo/
 └── requirements.txt               # Minimal Python dependencies
 ```
 
-## Planned local run
+## Local setup and run
 
 ```bash
 python -m venv .venv
@@ -71,7 +71,13 @@ python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Implementation and verified run instructions will be completed incrementally.
+When the folder is opened in VS Code, the committed workspace setting points the
+Python extension to `.venv/bin/python`. If VS Code does not select it
+automatically, run **Python: Select Interpreter** from the Command Palette and
+choose that path.
+
+The skeleton page has been verified locally with Python 3.13, pandas 2.3.3,
+Streamlit 1.64.0, and pytest 8.4.2.
 
 ## Portfolio boundary
 
