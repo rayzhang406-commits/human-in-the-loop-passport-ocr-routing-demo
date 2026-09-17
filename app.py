@@ -106,8 +106,8 @@ if current_text:
         )
 else:
     st.write(
-        "Run OCR first. The next stages will standardize fields, compare historical "
-        "customers, and route the case."
+        "Run OCR first. The demo then standardizes the fields; the batch simulation "
+        "below compares historical records and routes cases for review."
     )
 
 st.subheader("3. Synthetic batch data staged for routing")
@@ -120,7 +120,7 @@ if HISTORICAL_CUSTOMERS_PATH.is_file() and MOCK_CASES_PATH.is_file():
     case_metric.metric("Mock OCR cases", len(mock_cases))
     st.caption(
         "All batch records are generated from a fixed seed and explicitly marked "
-        "synthetic. The routing engine will process these cases in the next stage."
+        "synthetic. The routing results below are produced from these cases."
     )
     st.dataframe(
         mock_cases[
