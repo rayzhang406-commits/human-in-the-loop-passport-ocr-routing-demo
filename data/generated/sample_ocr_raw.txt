@@ -1,0 +1,18 @@
+SYNTHETIC TEST CARD - NOT VALID
+
+PASSPORT-LIKE OCR INPUT
+Independent software demonstration / No government issuer
+
+FULL NAME PASSPORT NO
+
+MAYA LIN TEST-X7Q2M9
+
+DATE OF BIRTH SEX
+
+14 JUN 1998 F
+
+PLACE OF BIRTH EXPIRY DATE
+
+SAMPLE CITY 30 SEP 2031
+
+Generated solely for OCR testing. No real person or travel document.

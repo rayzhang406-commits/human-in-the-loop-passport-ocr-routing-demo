@@ -65,9 +65,13 @@ passport-ocr-record-matching-demo/
 ## Local setup and run
 
 ```bash
+brew install tesseract
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
+python scripts/generate_test_card.py
+python scripts/run_ocr_demo.py
+pytest
 streamlit run app.py
 ```
 
@@ -78,6 +82,11 @@ choose that path.
 
 The skeleton page has been verified locally with Python 3.13, pandas 2.3.3,
 Streamlit 1.64.0, and pytest 8.4.2.
+
+Tesseract is an optional open-source OCR entry point for a few clearly labeled
+synthetic test cards. The larger demonstration dataset will contain mock OCR
+results and will be labeled separately. No OCR accuracy claim will be made from
+the small live sample.
 
 ## Portfolio boundary
 
