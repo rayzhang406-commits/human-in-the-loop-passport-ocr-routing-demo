@@ -106,6 +106,28 @@ python scripts/generate_synthetic_data.py
 `test_case_expectations.csv` is used only to test the future routing engine; it
 is never an input to a business decision.
 
+## Routing rules
+
+1. If name, passport number, or date of birth is missing or ambiguous, route to
+   `MANUAL_REVIEW`.
+2. If one historical customer has the same normalized passport number and no
+   available identity field conflicts, route to `REUSE`.
+3. If the passport number matches but name, date of birth, sex, or place of
+   birth conflicts, route to `CONFLICT` and require human review.
+4. If name and date of birth match history but the passport number differs,
+   route to `MANUAL_REVIEW` as a possible reissue.
+5. If required fields are complete and no historical match exists, route to
+   `CREATE`.
+
+Run the routing pipeline with:
+
+```bash
+python scripts/process_cases.py
+```
+
+The derived output is stored in `data/processed/`. It includes a routing reason
+for every case and metrics calculated from those decisions.
+
 ## Portfolio boundary
 
 The public repository demonstrates an independently rebuilt, simplified decision workflow using synthetic data. It does not claim to reproduce a client's production system, operational metrics, proprietary rules, or OCR model performance.

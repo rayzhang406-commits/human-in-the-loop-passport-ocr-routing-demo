@@ -8,6 +8,7 @@ import streamlit as st
 from src.normalization import normalize_ocr_fields
 from src.ocr import OCRUnavailableError, extract_text, tesseract_path
 from src.parsing import parse_ocr_text
+from src.metrics import calculate_metrics
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -15,6 +16,7 @@ TEST_CARD_PATH = PROJECT_ROOT / "assets" / "synthetic_passport_test_card.png"
 SAVED_OCR_PATH = PROJECT_ROOT / "data" / "generated" / "sample_ocr_raw.txt"
 HISTORICAL_CUSTOMERS_PATH = PROJECT_ROOT / "data" / "generated" / "historical_customers.csv"
 MOCK_CASES_PATH = PROJECT_ROOT / "data" / "generated" / "mock_ocr_cases.csv"
+ROUTED_CASES_PATH = PROJECT_ROOT / "data" / "processed" / "routed_cases.csv"
 
 
 st.set_page_config(
@@ -136,3 +138,105 @@ if HISTORICAL_CUSTOMERS_PATH.is_file() and MOCK_CASES_PATH.is_file():
     )
 else:
     st.info("Run scripts/generate_synthetic_data.py to create the batch dataset.")
+
+st.subheader("4. Historical matching and review routing")
+if ROUTED_CASES_PATH.is_file() and HISTORICAL_CUSTOMERS_PATH.is_file():
+    routed_cases = pd.read_csv(ROUTED_CASES_PATH, keep_default_na=False)
+    historical_customers = pd.read_csv(HISTORICAL_CUSTOMERS_PATH, keep_default_na=False)
+    options = routed_cases["case_id"].tolist()
+    default_case = "CASE-018" if "CASE-018" in options else options[0]
+    selected_case_id = st.selectbox(
+        "Choose a synthetic batch case",
+        options,
+        index=options.index(default_case),
+        format_func=lambda case_id: (
+            f"{case_id} · "
+            f"{routed_cases.loc[routed_cases['case_id'].eq(case_id), 'simulated_error_type'].iloc[0]}"
+        ),
+    )
+    selected_case = routed_cases.loc[
+        routed_cases["case_id"].eq(selected_case_id)
+    ].iloc[0]
+
+    recommendation_column, evidence_column = st.columns([0.42, 0.58])
+    with recommendation_column:
+        st.metric("Routing recommendation", selected_case["routing_decision"])
+        st.metric(
+            "Human review required",
+            "Yes" if selected_case["review_required"] else "No",
+        )
+        if selected_case["routing_decision"] == "CONFLICT":
+            st.error(selected_case["decision_reason"])
+        elif selected_case["review_required"]:
+            st.warning(selected_case["decision_reason"])
+        elif selected_case["routing_decision"] == "REUSE":
+            st.success(selected_case["decision_reason"])
+        else:
+            st.info(selected_case["decision_reason"])
+
+    with evidence_column:
+        st.markdown("**OCR input and normalized keys**")
+        case_evidence = pd.DataFrame(
+            [
+                {
+                    "Field": "Full name",
+                    "Raw": selected_case["raw_full_name_latin"],
+                    "Normalized": selected_case["normalized_full_name_latin"],
+                },
+                {
+                    "Field": "Passport number",
+                    "Raw": selected_case["raw_passport_number"],
+                    "Normalized": selected_case["normalized_passport_number"],
+                },
+                {
+                    "Field": "Date of birth",
+                    "Raw": selected_case["raw_date_of_birth"],
+                    "Normalized": selected_case["normalized_date_of_birth"],
+                },
+            ]
+        )
+        st.dataframe(case_evidence, hide_index=True, width="stretch")
+
+        matched_customer_id = selected_case["matched_customer_id"]
+        if matched_customer_id:
+            candidate = historical_customers.loc[
+                historical_customers["customer_id"].eq(matched_customer_id)
+            ]
+            st.markdown("**Historical candidate**")
+            st.dataframe(
+                candidate[
+                    [
+                        "customer_id",
+                        "full_name_latin",
+                        "passport_number",
+                        "date_of_birth",
+                        "verification_status",
+                    ]
+                ],
+                hide_index=True,
+                width="stretch",
+            )
+        else:
+            st.caption("No deterministic historical candidate was found.")
+
+    metrics = calculate_metrics(routed_cases)
+    st.markdown("**Batch workflow metrics**")
+    completeness_column, reuse_column, review_column = st.columns(3)
+    completeness_column.metric(
+        "Critical-field completeness",
+        f"{metrics['critical_field_completeness']:.1%}",
+    )
+    reuse_column.metric(
+        "Automatic reuse rate",
+        f"{metrics['automatic_reuse_rate']:.1%}",
+    )
+    review_column.metric(
+        "Human-review rate",
+        f"{metrics['human_review_rate']:.1%}",
+    )
+    st.caption(
+        "Metrics are illustrative results from the generated batch dataset, not "
+        "production performance claims."
+    )
+else:
+    st.info("Run scripts/process_cases.py to create routing results.")

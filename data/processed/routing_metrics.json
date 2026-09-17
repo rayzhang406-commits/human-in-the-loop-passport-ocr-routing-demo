@@ -1,0 +1,7 @@
+{
+  "total_cases": 60,
+  "critical_field_completeness": 0.9111111111111111,
+  "automatic_reuse_rate": 0.3,
+  "human_review_rate": 0.4666666666666667,
+  "conflict_rate": 0.2
+}

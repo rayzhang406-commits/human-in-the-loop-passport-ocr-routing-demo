@@ -46,6 +46,7 @@ must calculate decisions from OCR and historical fields, never from this file.
 | `normalized_date_of_birth` | date or null | Parsed date when unambiguous |
 | `critical_field_completeness` | float | Share of required values present after normalization |
 | `matched_customer_id` | string or null | Best deterministic historical match |
+| `candidate_count` | integer | Number of deterministic historical candidates considered |
 | `routing_decision` | string | `CREATE`, `REUSE`, `CONFLICT`, or `MANUAL_REVIEW` |
 | `review_required` | boolean | Whether a person must review the case |
 | `decision_reason` | string | Human-readable explanation of the applied rule |
