@@ -1,65 +1,148 @@
-# Passport OCR Record Matching Demo
+# Human-in-the-Loop Passport OCR Routing Demo
 
-A lightweight, privacy-preserving demonstration of how raw OCR output can be standardized, compared with historical customer records, and routed to create, reuse, conflict, or human-review outcomes.
+A lightweight, privacy-preserving portfolio demo that turns OCR output into an
+explainable workflow recommendation: create a new record, reuse a historical
+record, flag a conflict, or request human review.
 
-> Project status: repository skeleton complete. All future records in this repository will be synthetic.
+**This is an independent demonstration using only synthetic data. It is not a
+production EDMS, a copy of an employer or client system, or evidence of
+production OCR accuracy.**
 
-## Why this project exists
+## The business problem
 
-OCR can extract text from a document, but it cannot safely decide how that text should update a customer record. This demo focuses on the business rules between OCR extraction and record handling: preserving raw values, standardizing fields, comparing identity information, preventing unsafe overwrites, and escalating ambiguous cases for human review.
+OCR can read text from a travel document, but the output may be incomplete,
+misformatted, or inconsistent with a historical customer record. Treating that
+output as confirmed data can create duplicates, overwrite identity information,
+or hide a conflict that needs human judgment.
 
-The project is an independent portfolio demonstration inspired by general workflow experience. It is not a copy of any production system.
+This demo asks one focused question:
 
-## Demo workflow
+> How can an OCR-assisted workflow preserve uncertain evidence, standardize it
+> conservatively, and safely route a case before a customer record is changed?
+
+## From manual risk to safe routing
 
 ```mermaid
 flowchart LR
-    A[Synthetic passport case] --> B[Mock OCR raw result]
-    B --> C[Field standardization]
-    C --> D[Historical customer matching]
-    D --> E{Routing decision}
-    E --> F[Create]
-    E --> G[Reuse]
-    E --> H[Conflict]
-    E --> I[Human review]
-    H --> I
+    subgraph ASIS[AS-IS: manual document intake]
+        A[Document information] --> B[Manual reading and entry]
+        B --> C[Duplicate, inconsistent, or overwritten records]
+    end
+
+    subgraph TOBE[Independent synthetic demo: OCR-assisted routing]
+        D[Synthetic test card or mock OCR result] --> E[Preserve raw OCR values]
+        E --> F[Conservative field standardization]
+        F --> G[Compare with synthetic history]
+        G --> H{Safe routing recommendation}
+        H --> I[CREATE]
+        H --> J[REUSE]
+        H --> K[CONFLICT]
+        H --> L[MANUAL REVIEW]
+        K --> L
+    end
 ```
 
-All OCR-derived outputs remain `UNVERIFIED`. A routing result is a recommendation, not an automatic identity confirmation.
+All OCR-derived values remain `UNVERIFIED`. The demo recommends a workflow
+route; it never confirms identity or silently overwrites a historical record.
 
-## In scope
+## Relationship to prior FDE experience
 
-- 50-100 reproducible synthetic processing cases
-- Mock OCR results with controlled missing values and recognition errors
-- Conservative normalization of names, passport numbers, dates, and categorical fields
-- Explainable customer matching and conflict rules
-- Human-review routing with visible reasons
-- A single-page Streamlit demo
-- Three primary metrics: critical-field completeness, automatic reuse rate, and human-review rate
+This project is a deliberately narrow, independently rebuilt companion demo
+inspired by general experience in an on-site Forward Deployed Engineer (FDE)
+engagement for travel-document operations.
 
-## Out of scope
+In the prior work, I contributed to a P0 single-document OCR workflow inside an
+existing web application. My responsibilities included translating the workflow
+into data objects and rules, preserving raw and normalized values, matching
+historical records, protecting against conflicts, and keeping OCR-derived
+results unverified until reviewed.
 
-- Production OCR model training or accuracy claims
-- Real passport images, customer records, company code, credentials, or internal configuration
-- Login, permissions, private file storage, asynchronous queues, or production deployment
-- Visa case scheduling, document supplementation, risk approval, or downstream system integration
-- A large analytical dashboard or an end-to-end EDMS rebuild
+The public demo recreates only the transferable decision layer with a different,
+minimal technical stack. It does **not** reuse source code, document layouts,
+customer data, service credentials, internal thresholds, or production metrics.
+
+| FDE design concern | Independent demo expression |
+|---|---|
+| OCR output is uncertain | Raw OCR text remains visible and `UNVERIFIED` |
+| Formatting should not change identity meaning | Normalization is conservative and testable |
+| Historical records should not be silently overwritten | Conflict cases route to human review |
+| Ambiguity needs an operational owner | Each route includes a visible reason |
+| A P0 scope should be small and testable | One synthetic document flow and 60 mock cases |
+
+## What the demo does
+
+1. Generates an obviously synthetic, non-valid test card.
+2. Runs local open-source Tesseract OCR on that card.
+3. Preserves the OCR text and parses the known synthetic layout.
+4. Standardizes names, passport numbers, dates, and categorical fields.
+5. Compares the normalized values against synthetic historical customers.
+6. Routes each case to `CREATE`, `REUSE`, `CONFLICT`, or `MANUAL_REVIEW`.
+7. Displays the decision reason, candidate evidence, and three workflow metrics.
+
+## Routing rules
+
+| Condition | Route | Human review | Reasoning |
+|---|---|---:|---|
+| Name, passport number, or date of birth is missing or ambiguous | `MANUAL_REVIEW` | Yes | A core identity key is unsafe to use |
+| One passport-number match and no available identity-field conflict | `REUSE` | No | The case can reuse the historical record without overwrite |
+| Passport number matches but name, date of birth, sex, or birthplace conflicts | `CONFLICT` | Yes | A potentially unsafe identity mismatch exists |
+| Name and date of birth match but passport number differs | `MANUAL_REVIEW` | Yes | Possible reissue; a person must decide |
+| Required fields are complete and no historical match exists | `CREATE` | No | A new unverified record can be created |
+
+## Data and validation
+
+The repository contains two separate demonstration tracks:
+
+- **Live OCR sample:** one clearly labeled synthetic test card processed locally
+  with Tesseract. It demonstrates integration only; no OCR accuracy claim is
+  made from this sample.
+- **Synthetic batch data:** 24 synthetic historical customers and 60 mock OCR
+  cases used to test the routing workflow.
+
+The batch has 18 intended reuse cases, 14 create cases, 12 conflict cases, and
+16 manual-review cases. A separate `test_case_expectations.csv` file acts only
+as a test oracle; the routing engine never reads it to make a decision.
+
+Current synthetic-batch results:
+
+| Metric | Definition | Illustrative result |
+|---|---|---:|
+| Critical-field completeness | Mean share of name, passport number, and date of birth present after normalization | 91.1% |
+| Automatic reuse rate | `REUSE` cases divided by all processed cases | 30.0% |
+| Human-review rate | Cases marked for review divided by all processed cases | 46.7% |
+
+These are generated demonstration results, not operational findings.
+
+## Streamlit walkthrough
+
+Run the app and open `http://localhost:8501`.
+
+1. Click **Run OCR on synthetic card** to run local OCR.
+2. Compare the raw OCR text with the standardized fields.
+3. Scroll to **Historical matching and review routing**.
+4. Try `CASE-018` for a safe reuse case, `CASE-021` for a new record,
+   `CASE-038` for a conflict, and `CASE-047` for manual review.
+5. Review the workflow metrics at the bottom.
+
+See [demo_walkthrough.md](docs/demo_walkthrough.md) for a 60-90 second demo
+script and narration.
 
 ## Repository structure
 
 ```text
 passport-ocr-record-matching-demo/
-├── app.py                         # Streamlit entry point
-├── src/                           # Normalization, matching, and metrics logic
-├── scripts/                       # Reproducible synthetic-data generator
+├── app.py                         # Streamlit interface
+├── src/                           # OCR adapter, parsing, normalization, matching, metrics
+├── scripts/                       # Synthetic data and routing pipelines
 ├── data/
-│   ├── generated/                 # Public synthetic input data
-│   └── processed/                 # Derived demo results
-├── tests/                         # Small rule and data-quality tests
-├── docs/                          # Scope and data dictionary
-├── assets/                        # Final screenshots or demo GIF
-├── PRIVACY.md                     # Public privacy and provenance statement
-└── requirements.txt               # Minimal Python dependencies
+│   ├── generated/                 # Public synthetic inputs and test oracle
+│   └── processed/                 # Derived routing results and metrics
+├── tests/                         # Rule and data-quality checks
+├── docs/                          # Scope, data dictionary, demo script, application language
+├── assets/                        # Synthetic card and final demo media
+├── PRIVACY.md                     # Privacy and provenance statement
+├── packages.txt                   # Optional deployment-level OCR dependency
+└── requirements.txt               # Python dependencies
 ```
 
 ## Local setup and run
@@ -71,63 +154,33 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 python scripts/generate_test_card.py
 python scripts/run_ocr_demo.py
+python scripts/generate_synthetic_data.py
+python scripts/process_cases.py
 pytest
 streamlit run app.py
 ```
 
-When the folder is opened in VS Code, the committed workspace setting points the
-Python extension to `.venv/bin/python`. If VS Code does not select it
-automatically, run **Python: Select Interpreter** from the Command Palette and
-choose that path.
+The committed VS Code workspace setting points the Python extension to
+`.venv/bin/python`. If VS Code does not select it automatically, use
+**Python: Select Interpreter** and choose that path.
 
-The skeleton page has been verified locally with Python 3.13, pandas 2.3.3,
-Streamlit 1.64.0, and pytest 8.4.2.
+## Limitations
 
-Tesseract is an optional open-source OCR entry point for a few clearly labeled
-synthetic test cards. The larger demonstration dataset will contain mock OCR
-results and will be labeled separately. No OCR accuracy claim will be made from
-the small live sample.
+- The parser supports only the deliberately controlled synthetic-card layout.
+- Tesseract is optional and handles only a small English-language test sample.
+- Matching is deterministic and rule-based; it is not a learned identity model.
+- The dataset is designed for demonstration, so its metrics are illustrative.
+- This demo does not implement file storage, permissions, queues, auditing,
+  document supplementation, scheduling, risk review, or production deployment.
 
-The current processing pipeline preserves raw OCR text, parses the known test
-layout, and applies conservative normalization. Unsupported or ambiguous values
-remain missing instead of being guessed, so they can be routed to human review.
+## Privacy and provenance
 
-## Synthetic batch data
+Read [PRIVACY.md](PRIVACY.md) before using or extending this project. No real
+documents, customer data, employer or client code, credentials, proprietary
+configuration, or production metrics may be added to the repository.
 
-The batch dataset is separate from the small live OCR sample. It contains 24
-synthetic historical customers and 60 mock OCR cases: 18 intended reuse cases,
-14 intended create cases, 12 conflicts, and 16 human-review cases. Regenerate
-it at any time with:
+## Application language
 
-```bash
-python scripts/generate_synthetic_data.py
-```
-
-`test_case_expectations.csv` is used only to test the future routing engine; it
-is never an input to a business decision.
-
-## Routing rules
-
-1. If name, passport number, or date of birth is missing or ambiguous, route to
-   `MANUAL_REVIEW`.
-2. If one historical customer has the same normalized passport number and no
-   available identity field conflicts, route to `REUSE`.
-3. If the passport number matches but name, date of birth, sex, or place of
-   birth conflicts, route to `CONFLICT` and require human review.
-4. If name and date of birth match history but the passport number differs,
-   route to `MANUAL_REVIEW` as a possible reissue.
-5. If required fields are complete and no historical match exists, route to
-   `CREATE`.
-
-Run the routing pipeline with:
-
-```bash
-python scripts/process_cases.py
-```
-
-The derived output is stored in `data/processed/`. It includes a routing reason
-for every case and metrics calculated from those decisions.
-
-## Portfolio boundary
-
-The public repository demonstrates an independently rebuilt, simplified decision workflow using synthetic data. It does not claim to reproduce a client's production system, operational metrics, proprietary rules, or OCR model performance.
+Suggested resume and statement wording is in
+[application_language.md](docs/application_language.md). The wording separates
+the factual internship work from this independent synthetic demo.
