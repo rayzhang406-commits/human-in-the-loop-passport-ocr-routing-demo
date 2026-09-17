@@ -61,7 +61,6 @@ with result_column:
     if "ocr_result_source" in st.session_state:
         st.caption(f"Result source: {st.session_state.ocr_result_source}")
 
-st.subheader("Next processing stages")
 current_text = st.session_state.get("ocr_raw_text", "")
 if current_text:
     raw_fields = parse_ocr_text(current_text)
@@ -102,8 +101,8 @@ if current_text:
         st.metric("Critical-field completeness", f"{completeness:.0%}")
     with status_column:
         st.info(
-            "Verification status: UNVERIFIED. Historical matching and routing "
-            "will be added in the next stage."
+            "Verification status: UNVERIFIED. The batch simulation below uses "
+            "these same standardized keys for matching and review routing."
         )
 else:
     st.write(
@@ -144,15 +143,22 @@ if ROUTED_CASES_PATH.is_file() and HISTORICAL_CUSTOMERS_PATH.is_file():
     routed_cases = pd.read_csv(ROUTED_CASES_PATH, keep_default_na=False)
     historical_customers = pd.read_csv(HISTORICAL_CUSTOMERS_PATH, keep_default_na=False)
     options = routed_cases["case_id"].tolist()
+    case_labels = {
+        row.case_id: (
+            f"{row.case_id} · {row.routing_decision} · {row.simulated_error_type}"
+        )
+        for row in routed_cases.itertuples(index=False)
+    }
     default_case = "CASE-018" if "CASE-018" in options else options[0]
+    st.caption(
+        "Recommended demo cases: CASE-018 for reuse, CASE-021 for create, "
+        "CASE-038 for conflict, and CASE-047 for manual review."
+    )
     selected_case_id = st.selectbox(
         "Choose a synthetic batch case",
         options,
         index=options.index(default_case),
-        format_func=lambda case_id: (
-            f"{case_id} · "
-            f"{routed_cases.loc[routed_cases['case_id'].eq(case_id), 'simulated_error_type'].iloc[0]}"
-        ),
+        format_func=case_labels.__getitem__,
     )
     selected_case = routed_cases.loc[
         routed_cases["case_id"].eq(selected_case_id)
