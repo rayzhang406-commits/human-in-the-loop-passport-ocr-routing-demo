@@ -88,6 +88,10 @@ synthetic test cards. The larger demonstration dataset will contain mock OCR
 results and will be labeled separately. No OCR accuracy claim will be made from
 the small live sample.
 
+The current processing pipeline preserves raw OCR text, parses the known test
+layout, and applies conservative normalization. Unsupported or ambiguous values
+remain missing instead of being guessed, so they can be routed to human review.
+
 ## Portfolio boundary
 
 The public repository demonstrates an independently rebuilt, simplified decision workflow using synthetic data. It does not claim to reproduce a client's production system, operational metrics, proprietary rules, or OCR model performance.

@@ -2,9 +2,12 @@
 
 from pathlib import Path
 
+import pandas as pd
 import streamlit as st
 
+from src.normalization import normalize_ocr_fields
 from src.ocr import OCRUnavailableError, extract_text, tesseract_path
+from src.parsing import parse_ocr_text
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -55,7 +58,51 @@ with result_column:
         st.caption(f"Result source: {st.session_state.ocr_result_source}")
 
 st.subheader("Next processing stages")
-st.write(
-    "Raw OCR fields → field standardization → historical customer matching → "
-    "create, reuse, conflict, or human review"
-)
+current_text = st.session_state.get("ocr_raw_text", "")
+if current_text:
+    raw_fields = parse_ocr_text(current_text)
+    normalized_fields = normalize_ocr_fields(raw_fields)
+
+    field_mapping = [
+        ("Full name", "raw_full_name_latin", "normalized_full_name_latin"),
+        ("Passport number", "raw_passport_number", "normalized_passport_number"),
+        ("Date of birth", "raw_date_of_birth", "normalized_date_of_birth"),
+        ("Sex", "raw_sex", "normalized_sex"),
+        ("Place of birth", "raw_place_of_birth", "normalized_place_of_birth"),
+        ("Expiry date", "raw_expiry_date", "normalized_expiry_date"),
+    ]
+    comparison = pd.DataFrame(
+        [
+            {
+                "Field": label,
+                "Raw value": raw_fields[raw_key],
+                "Normalized value": normalized_fields[normalized_key],
+                "Status": "Ready"
+                if normalized_fields[normalized_key]
+                else "Needs review",
+            }
+            for label, raw_key, normalized_key in field_mapping
+        ]
+    )
+
+    st.subheader("2. Parsed and standardized fields")
+    st.caption(
+        "Raw values preserve OCR evidence. Normalized values are used by later "
+        "matching rules. Missing or ambiguous values are not guessed."
+    )
+    st.dataframe(comparison, hide_index=True, width="stretch")
+
+    completeness = float(normalized_fields["critical_field_completeness"])
+    metric_column, status_column = st.columns([0.35, 0.65])
+    with metric_column:
+        st.metric("Critical-field completeness", f"{completeness:.0%}")
+    with status_column:
+        st.info(
+            "Verification status: UNVERIFIED. Historical matching and routing "
+            "will be added in the next stage."
+        )
+else:
+    st.write(
+        "Run OCR first. The next stages will standardize fields, compare historical "
+        "customers, and route the case."
+    )
