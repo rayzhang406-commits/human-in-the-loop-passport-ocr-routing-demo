@@ -92,6 +92,20 @@ The current processing pipeline preserves raw OCR text, parses the known test
 layout, and applies conservative normalization. Unsupported or ambiguous values
 remain missing instead of being guessed, so they can be routed to human review.
 
+## Synthetic batch data
+
+The batch dataset is separate from the small live OCR sample. It contains 24
+synthetic historical customers and 60 mock OCR cases: 18 intended reuse cases,
+14 intended create cases, 12 conflicts, and 16 human-review cases. Regenerate
+it at any time with:
+
+```bash
+python scripts/generate_synthetic_data.py
+```
+
+`test_case_expectations.csv` is used only to test the future routing engine; it
+is never an input to a business decision.
+
 ## Portfolio boundary
 
 The public repository demonstrates an independently rebuilt, simplified decision workflow using synthetic data. It does not claim to reproduce a client's production system, operational metrics, proprietary rules, or OCR model performance.

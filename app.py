@@ -13,6 +13,8 @@ from src.parsing import parse_ocr_text
 PROJECT_ROOT = Path(__file__).resolve().parent
 TEST_CARD_PATH = PROJECT_ROOT / "assets" / "synthetic_passport_test_card.png"
 SAVED_OCR_PATH = PROJECT_ROOT / "data" / "generated" / "sample_ocr_raw.txt"
+HISTORICAL_CUSTOMERS_PATH = PROJECT_ROOT / "data" / "generated" / "historical_customers.csv"
+MOCK_CASES_PATH = PROJECT_ROOT / "data" / "generated" / "mock_ocr_cases.csv"
 
 
 st.set_page_config(
@@ -106,3 +108,31 @@ else:
         "Run OCR first. The next stages will standardize fields, compare historical "
         "customers, and route the case."
     )
+
+st.subheader("3. Synthetic batch data staged for routing")
+if HISTORICAL_CUSTOMERS_PATH.is_file() and MOCK_CASES_PATH.is_file():
+    historical_customers = pd.read_csv(HISTORICAL_CUSTOMERS_PATH, keep_default_na=False)
+    mock_cases = pd.read_csv(MOCK_CASES_PATH, keep_default_na=False)
+
+    customer_metric, case_metric = st.columns(2)
+    customer_metric.metric("Historical customer records", len(historical_customers))
+    case_metric.metric("Mock OCR cases", len(mock_cases))
+    st.caption(
+        "All batch records are generated from a fixed seed and explicitly marked "
+        "synthetic. The routing engine will process these cases in the next stage."
+    )
+    st.dataframe(
+        mock_cases[
+            [
+                "case_id",
+                "raw_full_name_latin",
+                "raw_passport_number",
+                "raw_date_of_birth",
+                "simulated_error_type",
+            ]
+        ].head(8),
+        hide_index=True,
+        width="stretch",
+    )
+else:
+    st.info("Run scripts/generate_synthetic_data.py to create the batch dataset.")

@@ -13,12 +13,15 @@ The first version uses three logical datasets. Final column names may be refined
 | `sex` | string | Standardized categorical value |
 | `place_of_birth` | string | Historical birthplace value |
 | `verification_status` | string | Indicates the status of the historical record |
+| `expiry_date` | date | Historical passport expiry date |
 
 ## Mock OCR cases
 
 | Field | Type | Purpose |
 |---|---|---|
 | `case_id` | string | Synthetic processing-case identifier |
+| `document_type` | string | Always identifies an obviously synthetic test document |
+| `ocr_source` | string | `MOCK_OCR` for generated batch data; separate from the live OCR sample |
 | `raw_full_name_latin` | string or null | Name returned by mock OCR |
 | `raw_passport_number` | string or null | Passport number returned by mock OCR |
 | `raw_date_of_birth` | string or null | Unparsed date returned by mock OCR |
@@ -26,6 +29,12 @@ The first version uses three logical datasets. Final column names may be refined
 | `raw_place_of_birth` | string or null | Raw birthplace value |
 | `raw_expiry_date` | string or null | Unparsed expiry date |
 | `simulated_error_type` | string | Controlled synthetic OCR issue or `NONE` |
+
+## Test-only expectations
+
+`test_case_expectations.csv` contains the generator scenario and expected routing
+result for each synthetic case. It is a test oracle only: the matching engine
+must calculate decisions from OCR and historical fields, never from this file.
 
 ## Processed decisions
 
