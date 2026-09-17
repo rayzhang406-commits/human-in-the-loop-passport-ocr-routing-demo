@@ -1,0 +1,15 @@
+.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.streamlit/secrets.toml
+.env
+.env.*
+
+# Never commit locally reviewed or client-provided materials.
+data/local_only/
+
+# Generated caches and temporary exports.
+.cache/
+tmp/
