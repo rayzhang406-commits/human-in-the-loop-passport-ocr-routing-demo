@@ -127,6 +127,42 @@ Run the app and open `http://localhost:8501`.
 See [demo_walkthrough.md](docs/demo_walkthrough.md) for a 60-90 second demo
 script and narration.
 
+## Demo screenshots
+
+All screenshots below use generated synthetic data only. They illustrate the
+decision workflow; they are not production screens or performance evidence.
+
+### 1. Preserve uncertain OCR evidence
+
+The demo makes the input's synthetic status explicit, retains the raw OCR
+output, and labels every OCR-derived value as unverified.
+
+![Synthetic OCR input and raw output](assets/01_ocr_input.png)
+
+### 2. Standardize conservatively before matching
+
+Raw values remain visible alongside normalized values. For example, dates are
+converted to an unambiguous ISO format; ambiguous values would be left empty
+rather than guessed.
+
+![Parsed and standardized fields](assets/02_field_standardization.png)
+
+### 3. Reuse only when the evidence is consistent
+
+`CASE-018` contains harmless whitespace in the OCR passport number. After
+normalization, its identity fields match one synthetic historical record, so
+the workflow recommends `REUSE` without human review.
+
+![Safe historical record reuse](assets/03_safe_record_reuse.png)
+
+### 4. Escalate identity conflicts to a person
+
+In `CASE-038`, the passport number matches a synthetic history record but the
+date of birth conflicts. The workflow recommends `CONFLICT` and requires
+human review instead of automatically reusing or overwriting the record.
+
+![Conflict requires human review](assets/04_conflict_requires_review.png)
+
 ## Repository structure
 
 ```text
