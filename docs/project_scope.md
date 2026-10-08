@@ -1,12 +1,16 @@
 # Project Scope
 
-## Portfolio objective
+## Project objective
 
-Demonstrate how a Forward Deployed Engineer can translate an ambiguous document-processing requirement into explainable data fields, conservative business rules, conflict protection, and human-review routing.
+Demonstrate how uncertain OCR-derived identity fields can be normalized,
+compared with historical records, and routed to an appropriate next step.
 
 ## User story
 
-As an operations user, I want a passport OCR result to be compared with historical customer data so that the system can recommend whether to create a record, reuse an existing record, or escalate a conflict without silently overwriting identity information.
+As an operations user, I want a passport OCR result to be compared with
+historical customer data so that the system can recommend whether to create a
+record, reuse an existing record, or escalate a conflict without silently
+overwriting identity information.
 
 ## Core decisions
 
@@ -17,11 +21,11 @@ As an operations user, I want a passport OCR result to be compared with historic
 | `CONFLICT` | A strong candidate exists but one or more non-empty identity fields disagree | Required |
 | `MANUAL_REVIEW` | Key fields are missing or the case is otherwise unsafe to classify | Required |
 
-Every result remains `UNVERIFIED`; the decision indicates workflow routing only.
+Each decision is a routing recommendation, not identity confirmation.
 
 ## Acceptance criteria
 
-- The entire demo runs without any client or company asset.
+- The demo runs using only generated data and repository files.
 - Synthetic data can be regenerated with a fixed random seed.
 - Raw and normalized field values remain separately visible.
 - Every routing decision includes a human-readable reason.

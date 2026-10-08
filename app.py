@@ -20,17 +20,14 @@ ROUTED_CASES_PATH = PROJECT_ROOT / "data" / "processed" / "routed_cases.csv"
 
 
 st.set_page_config(
-    page_title="Passport OCR Record Matching Demo",
+    page_title="Synthetic OCR-to-Record Routing Demo",
     page_icon="🔎",
     layout="wide",
 )
 
-st.title("Passport OCR Record Matching Demo")
-st.caption("Synthetic data only · Independent portfolio demonstration")
-
+st.title("Synthetic OCR-to-Record Routing Demo")
 st.warning(
-    "All OCR-derived fields remain UNVERIFIED. Routing results are recommendations, "
-    "not automatic identity confirmation."
+    "Synthetic data only. Routing results are recommendations, not identity confirmation."
 )
 
 st.subheader("1. Open-source OCR input")
@@ -47,7 +44,7 @@ with result_column:
 
     if "ocr_raw_text" not in st.session_state and SAVED_OCR_PATH.is_file():
         st.session_state.ocr_raw_text = SAVED_OCR_PATH.read_text(encoding="utf-8")
-        st.session_state.ocr_result_source = "Saved verified sample"
+        st.session_state.ocr_result_source = "Saved synthetic OCR sample"
 
     if st.button("Run OCR on synthetic card", type="primary"):
         try:
@@ -101,8 +98,8 @@ if current_text:
         st.metric("Critical-field completeness", f"{completeness:.0%}")
     with status_column:
         st.info(
-            "Verification status: UNVERIFIED. The batch simulation below uses "
-            "these same standardized keys for matching and review routing."
+            "The batch examples below use these standardized keys for matching and "
+            "review routing."
         )
 else:
     st.write(
@@ -119,8 +116,8 @@ if HISTORICAL_CUSTOMERS_PATH.is_file() and MOCK_CASES_PATH.is_file():
     customer_metric.metric("Historical customer records", len(historical_customers))
     case_metric.metric("Mock OCR cases", len(mock_cases))
     st.caption(
-        "All batch records are generated from a fixed seed and explicitly marked "
-        "synthetic. The routing results below are produced from these cases."
+        "The batch records are generated from a fixed seed. The routing results "
+        "below are produced from these cases."
     )
     st.dataframe(
         mock_cases[
@@ -241,8 +238,7 @@ if ROUTED_CASES_PATH.is_file() and HISTORICAL_CUSTOMERS_PATH.is_file():
         f"{metrics['human_review_rate']:.1%}",
     )
     st.caption(
-        "Metrics are illustrative results from the generated batch dataset, not "
-        "production performance claims."
+        "These values are calculated from the generated test batch."
     )
 else:
     st.info("Run scripts/process_cases.py to create routing results.")
